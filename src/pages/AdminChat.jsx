@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-// 1. التعديل هنا: قراءة الرابط ديناميكياً لتجنب مشكلة الـ localhost على السيرفر
+// 1. التعديل هنا: استخدام مسار نسبي '/' لضمان الاتصال بالسيرفر الحالي في الإنتاج
 const SOCKET_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
 
@@ -15,20 +15,16 @@ export default function AdminChat() {
   const [activeRoom, setActiveRoom] = useState(null);
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([]);
-
-  // State جديد لتتبع الغرف التي بها رسائل غير مقروءة
   const [unreadRooms, setUnreadRooms] = useState(new Set());
-
   const scrollRef = useRef();
 
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        // جلب التوكن من المتصفح
         const token = localStorage.getItem("adminToken");
 
-        // تنظيف الرابط الأساسي
-        let baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        // 2. التعديل هنا: جعل baseUrl يميل للمسار النسبي إذا لم يجد المتغير
+        let baseUrl = import.meta.env.VITE_API_URL || "";
         baseUrl = baseUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
 
         const res = await fetch(`${baseUrl}/api/chats/rooms`, {
@@ -59,18 +55,13 @@ export default function AdminChat() {
     fetchRooms();
   }, []);
 
-  // 2. إدارة اتصال السوكيت
+  // باقي الكود كما هو بدون تغييرات في المنطق...
   useEffect(() => {
     const handleReceiveMessage = (data) => {
-      // 1. إذا كانت الرسالة لنفس الغرفة المفتوحة حالياً
       if (data.roomId === activeRoom) {
         setChat((prev) => [...prev, data]);
-      }
-      // 2. إذا كانت الرسالة لغرفة أخرى، والرسالة من العميل
-      else if (data.sender !== "admin") {
+      } else if (data.sender !== "admin") {
         setUnreadRooms((prev) => new Set(prev).add(data.roomId));
-
-        // إضافة الغرفة للقائمة لو كانت جديدة ومش موجودة في rooms
         setRooms((prevRooms) => {
           if (!prevRooms.includes(data.roomId)) {
             return [data.roomId, ...prevRooms];
@@ -81,35 +72,20 @@ export default function AdminChat() {
     };
 
     socket.on("receive_message", handleReceiveMessage);
-
-    return () => {
-      socket.off("receive_message", handleReceiveMessage);
-    };
+    return () => socket.off("receive_message", handleReceiveMessage);
   }, [activeRoom]);
 
-  // إدارة الغرفة النشطة
   useEffect(() => {
     if (!activeRoom) return;
-
-    // الانضمام للغرفة
     socket.emit("join_chat", activeRoom);
-
-    // استقبال الهيستوري
-    socket.on("chat_history", (history) => {
-      setChat(history);
-    });
-
-    return () => {
-      socket.off("chat_history");
-    };
+    socket.on("chat_history", (history) => setChat(history));
+    return () => socket.off("chat_history");
   }, [activeRoom]);
 
-  // 3. سكرول تلقائي
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
 
-  // دالة اختيار الغرفة (تزيل الغرفة من قائمة غير المقروء)
   const handleRoomClick = (roomId) => {
     setActiveRoom(roomId);
     setUnreadRooms((prev) => {
@@ -122,25 +98,16 @@ export default function AdminChat() {
   const sendMsg = (e) => {
     e.preventDefault();
     if (!message.trim()) return;
-
-    const msgData = {
-      roomId: activeRoom,
-      message: message.trim(),
-      sender: "admin",
-    };
-
-    // إرسال للسيرفر
+    const msgData = { roomId: activeRoom, message: message.trim(), sender: "admin" };
     socket.emit("send_message", msgData);
-
-    // إضافة الرسالة عندي فوراً
     setChat((prev) => [...prev, msgData]);
     setMessage("");
   };
 
   return (
     <div className="flex h-screen bg-gray-100 p-4 gap-4" dir="rtl">
-      {/* القائمة الجانبية */}
-      <div className="w-1/3 bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col overflow-hidden">
+       {/* UI code remains the same */}
+       <div className="w-1/3 bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col overflow-hidden">
         <div className="p-5 bg-gray-50 border-b border-gray-200 font-black text-gray-800 text-lg flex justify-between items-center">
           <span>المحادثات النشطة</span>
           {unreadRooms.size > 0 && (
@@ -178,8 +145,6 @@ export default function AdminChat() {
                       ID: {id}
                     </span>
                   </div>
-
-                  {/* علامة التنبيه للرسائل غير المقروءة */}
                   {isUnread && (
                     <div className="w-3 h-3 bg-red-500 rounded-full animate-bounce shadow-[0_0_8px_rgba(239,68,68,0.6)]"></div>
                   )}
@@ -190,7 +155,6 @@ export default function AdminChat() {
         </div>
       </div>
 
-      {/* منطقة الشات */}
       <div className="flex-1 bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col overflow-hidden">
         {activeRoom ? (
           <>
@@ -246,22 +210,10 @@ export default function AdminChat() {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-gray-300 gap-4">
-            <svg
-              className="w-20 h-20 opacity-20"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
+            <svg className="w-20 h-20 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <p className="text-xl font-bold text-gray-400">
-              يرجى اختيار محادثة للبدء
-            </p>
+            <p className="text-xl font-bold text-gray-400">يرجى اختيار محادثة للبدء</p>
           </div>
         )}
       </div>
