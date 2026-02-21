@@ -2,8 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
 // استبدل الرابط برابط السيرفر الخاص بك
-const socket = io("http://localhost:5000");
-
+const SOCKET_URL = import.meta.env.MODE === 'development' ? 'http://localhost:5000' : '/';
+const socket = io(SOCKET_URL, {
+  path: "/socket.io/", // المسار الافتراضي للشات
+  transports: ["websocket", "polling"],
+});
 export default function ChatWidget({ lang }) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
