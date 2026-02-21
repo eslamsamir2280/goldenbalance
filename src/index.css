@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* الخط الافتراضي (للعربي) */
+  body {
+    @apply bg-[#0A0A0A] text-white;
+    font-family: 'Cairo', sans-serif;
+  }
+
+  /* تبديل الخطوط بناءً على لغة الصفحة */
+  /* نستخدم الـ Selector ده لضمان التطبيق بدقة */
+  html[lang="en"] body,
+  html[lang="it"] body {
+font-family: 'Cairo', sans-serif;
+  }
+
+  /* تحسين شكل النصوص اللاتينية داخل المحتوى العربي */
+  [dir="rtl"] {
+    font-family: 'Cairo', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* للخطوط الفخمة في العناوين */
+  .font-display {
+font-family: 'Cairo', sans-serif;
+  }
+
+  .gold-gradient {
+    background: linear-gradient(135deg, #D4AF37, #F5E17A, #B8960C);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gold-line {
+    background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+  }
+}
+
+/* تنسيق محتوى المقالات القادم من محرر النصوص */
+.article-content {
+    font-size: 1.1rem;
+}
+
+/* تطبيق خط الـ Serif في المقالات الإنجليزية/الإيطالية */
+html[lang="en"] .article-content,
+html[lang="it"] .article-content {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; /* خط الـ Serif يحتاج حجم أكبر قليلاً ليظهر بوضوح */
+}
+
+.article-content p { margin-bottom: 1.5rem; line-height: 1.8; color: rgba(255, 255, 255, 0.8); }
+.article-content h1, .article-content h2, .article-content h3 { color: #D4AF37; margin-top: 2rem; margin-bottom: 1rem; font-weight: bold; }
+.article-content blockquote { border-inline-start: 4px solid #D4AF37; padding-inline-start: 1rem; font-style: italic; background: rgba(212, 175, 55, 0.05); padding: 1.5rem; margin: 2rem 0; }
+.article-content ul, .article-content ol { padding-inline-start: 2rem; margin-bottom: 1.5rem; color: rgba(255, 255, 255, 0.8); }
+.article-content li { margin-bottom: 0.5rem; }
+.article-content * {
+  max-width: 100% !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
