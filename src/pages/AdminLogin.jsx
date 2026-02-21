@@ -14,9 +14,13 @@ export default function AdminLogin() {
     setLoading(true);
     
     try {
-      // الاتصال بالسيرفر الحقيقي الخاص بك للتحقق من البيانات
-      // (تأكد أن السيرفر يعمل على بورت 5000)
-      const response = await fetch(`http://localhost:5000/api/admin/login`, {
+      // 1. قراءة الرابط ديناميكياً (يشتغل معاك لوكال وعلى السيرفر)
+      let baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      // تنظيف الرابط لمنع تكرار كلمة api
+      baseUrl = baseUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
+
+      // 2. استخدام الرابط الديناميكي في الطلب
+      const response = await fetch(`${baseUrl}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -35,7 +39,7 @@ export default function AdminLogin() {
       }
     } catch (err) {
       console.error(err);
-      setError('لا يمكن الاتصال بالخادم. تأكد من تشغيل السيرفر.');
+      setError('لا يمكن الاتصال بالخادم. تأكد من اتصالك بالإنترنت أو تشغيل السيرفر.');
     } finally {
       setLoading(false);
     }
