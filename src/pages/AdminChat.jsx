@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 
 // 1. التعديل هنا: استخدام مسار نسبي '/' لضمان الاتصال بالسيرفر الحالي في الإنتاج
 const SOCKET_URL =
-  import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
+  import.meta.env.MODE === || "/";
 
 const socket = io(SOCKET_URL, {
   path: "/socket.io/",
@@ -220,3 +220,4 @@ export default function AdminChat() {
     </div>
   );
 }
+
