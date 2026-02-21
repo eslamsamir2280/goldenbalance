@@ -15,7 +15,7 @@ export default function AdminLogin() {
     
     try {
       // 1. قراءة الرابط ديناميكياً (يشتغل معاك لوكال وعلى السيرفر)
-      let baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      let baseUrl = import.meta.env.VITE_API_URL;
       // تنظيف الرابط لمنع تكرار كلمة api
       baseUrl = baseUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
 
@@ -93,3 +93,4 @@ export default function AdminLogin() {
     </div>
   );
 }
+
