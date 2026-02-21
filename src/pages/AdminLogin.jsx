@@ -15,11 +15,12 @@ export default function AdminLogin() {
     
     try {
       // 1. قراءة الرابط ديناميكياً (يشتغل معاك لوكال وعلى السيرفر)
-      let baseUrl = import.meta.env.VITE_API_URL;
-      // تنظيف الرابط لمنع تكرار كلمة api
+      let baseUrl = import.meta.env.VITE_API_URL || "";
+      
+      // تنظيف الرابط لمنع التكرار
       baseUrl = baseUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
 
-      // 2. استخدام الرابط الديناميكي في الطلب
+      // 2. الطلب (لو baseUrl فاضية، هيبعت لـ /api/admin/login مباشرة وده الصح على السيرفر)
       const response = await fetch(`${baseUrl}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,4 +94,5 @@ export default function AdminLogin() {
     </div>
   );
 }
+
 
