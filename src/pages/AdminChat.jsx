@@ -2,12 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
 // 1. التعديل هنا: استخدام مسار نسبي '/' لضمان الاتصال بالسيرفر الحالي في الإنتاج
-const SOCKET_URL =
- import.meta.env.VITE_API_URL || "";
+const SOCKET_URL = "/";
 
 const socket = io(SOCKET_URL, {
   path: "/socket.io/",
-  transports: ["websocket", "polling"],
+  transports: ["websocket"], // إزالة الـ polling تماماً لمنع أخطاء 400
 });
 
 export default function AdminChat() {
@@ -220,5 +219,6 @@ export default function AdminChat() {
     </div>
   );
 }
+
 
 
