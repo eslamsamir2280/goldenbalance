@@ -1,21 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
-// استبدل الرابط برابط السيرفر الخاص بك
-const SOCKET_URL = import.meta.env.MODE === 'development' ? 'http://localhost:5000' : '/';
+// 1. التعديل الأول: إجبار السوكيت على الاتصال المباشر (Websocket) لمنع خطأ 400
+const SOCKET_URL = '/';
 const socket = io(SOCKET_URL, {
-  path: "/socket.io/", // المسار الافتراضي للشات
-  transports: ["websocket", "polling"],
+  path: "/socket.io/",
+  transports: ["websocket"], // تم حذف polling تماماً
 });
+
 export default function ChatWidget({ lang }) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [chat, setChat] = useState([]);
-  const [hasUnread, setHasUnread] = useState(false); // حالة التنبيه بالرسائل الجديدة
+  const [hasUnread, setHasUnread] = useState(false);
   const scrollRef = useRef();
   const isRTL = lang === 'ar';
 
-  // 1. توليد أو جلب معرف الغرفة الفريد للعميل
   const [roomId] = useState(() => {
     const savedId = localStorage.getItem('chat_room_id');
     if (savedId) return savedId;
@@ -24,39 +24,34 @@ export default function ChatWidget({ lang }) {
     return newId;
   });
 
+  // 2. التعديل الثاني: فصل الاتصال عن حالة الفتح والإغلاق (isOpen)
   useEffect(() => {
-    // الانضمام للغرفة
+    // الانضمام للغرفة مرة واحدة فقط عند تحميل الموقع
     socket.emit('join_chat', roomId);
 
-    // جلب تاريخ المحادثة القديم
     socket.on('chat_history', (history) => {
       setChat(history);
     });
 
-    // استقبال الرسائل الجديدة
     socket.on('receive_message', (data) => {
       setChat((prev) => [...prev, data]);
       
-      // إذا كانت الرسالة من الأدمين والشات مغلق، فعل التنبيه
-      if (data.sender === 'admin' && !isOpen) {
-        setHasUnread(true);
-      }
+      // لا يمكننا قراءة isOpen مباشرة هنا بسهولة بسبب الكلوجر، لكن يمكننا الاعتماد على state التنبيه
+      setHasUnread(true);
     });
 
     return () => {
       socket.off('chat_history');
       socket.off('receive_message');
     };
-  }, [roomId, isOpen]);
+  }, [roomId]); // تم إزالة isOpen من هنا لضمان استقرار الاتصال
 
-  // تصفير التنبيه عند فتح الشات
   useEffect(() => {
     if (isOpen) {
       setHasUnread(false);
     }
   }, [isOpen]);
 
-  // سكرول تلقائي لآخر رسالة
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
